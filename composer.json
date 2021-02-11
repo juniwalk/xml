@@ -1,0 +1,21 @@
+{
+	"name": "juniwalk/xml",
+	"license": "MIT",
+
+	"authors": [{
+		"name": "Martin Procházka",
+		"email": "juniwalk@outlook.cz"
+	}],
+
+	"autoload": {
+		"psr-4": {"JuniWalk\\Xml\\": "src/"}
+	},
+
+	"require": {
+		"php": ">=7.3",
+		"ext-xml": "*",
+		"hakre/xmlreaderiterator": "^0.1",
+		"nette/utils": ">=2.4",
+		"latte/latte": ">=2.4"
+	}
+}
