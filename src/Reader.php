@@ -8,6 +8,7 @@
 namespace JuniWalk\Xml;
 
 use JuniWalk\Xml\Exceptions\FileHandlingException;
+use JuniWalk\Xml\Exceptions\XmlException;
 use DOMNode;
 use Nette\Utils\Strings;
 use XMLElementIterator;
@@ -31,6 +32,33 @@ final class Reader extends XmlReader
 		if (!$this->open($file, null, LIBXML_PARSEHUGE|LIBXML_COMPACT|LIBXML_NOCDATA|LIBXML_BIGLINES)) {
 			throw new FileHandlingException('Unable to read '.$file);
 		}
+
+		libxml_use_internal_errors(true);
+		libxml_clear_errors();
+	}
+
+
+	/**
+	 * @throws XmlException
+	 */
+	public function read(): bool
+	{
+		$result = @parent::read();
+		$this->checkForErrors();
+
+		return $result;
+	}
+
+
+	/**
+	 * @throws XmlException
+	 */
+	public function expand($baseNode = null)
+	{
+		$result = @parent::expand($baseNode);
+		$this->checkForErrors();
+
+		return $result;
 	}
 
 
@@ -126,5 +154,15 @@ final class Reader extends XmlReader
 		}
 
 		return $output;
+	}
+
+
+	private function checkForErrors(): void
+	{
+		if ($lastError = libxml_get_last_error()) {
+			throw XmlException::fromXmlError($lastError);
+		}
+
+		libxml_clear_errors();
 	}
 }
