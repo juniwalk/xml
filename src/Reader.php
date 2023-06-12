@@ -53,6 +53,7 @@ final class Reader extends XmlReader
 	/**
 	 * @throws XmlException
 	 */
+	#[\ReturnTypeWillChange]
 	public function expand($baseNode = null)
 	{
 		$result = @parent::expand($baseNode);
