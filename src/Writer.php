@@ -7,66 +7,48 @@
 
 namespace JuniWalk\Xml;
 
+use JuniWalk\Utils\Html;
 use JuniWalk\Xml\Exceptions\FileHandlingException;
 use JuniWalk\Xml\Exceptions\XmlException;
-use Latte\Engine;
-use Nette\Utils\Html;
+use JuniWalk\Xml\Exceptions\XmlInteruptException;
+use Latte\Engine as LatteEngine;
 
 class Writer
 {
-	/** @var string */
-	private $templateFile;
-
-	/** @var Engine */
-	private $latte;
-
-	/** @var Html */
-	private $tag;
+	private bool $interupt = false;
+	private LatteEngine $latteEngine;
+	private Html $tag;
 
 	/** @var resource */
 	private $stream;
 
-	/** @var string */
-	private $interupt = false;
+	public function __construct(
+		private string $file,
+		private string $templateFile,
+		private array $params = [],
+	) {
+		$this->latteEngine = new LatteEngine;
+	}
 
-	/** @var string[] */
-	private $params;
 
-	/** @var string */
-	private $file;
-
-
-	/**
-	 * @param  string  $file
-	 * @param  Engine|null  $latte
-	 */
-	public function __construct(string $file, Engine $latte = null)
+	public function __destruct()
 	{
-		$this->latte = $latte ?? new Engine;
-		$this->file = $file;
+		$this->close();
+	}
+
+
+	public function enableAsyncInterupt(): void
+	{
+		pcntl_signal(SIGINT, fn() => $this->interupt = true);
+		pcntl_async_signals(true);
 	}
 
 
 	/**
-	 * @param  string  $templateFile
-	 * @param  string[]  $params
-	 * @return void
-	 */
-	public function setTemplateFile(string $templateFile, iterable $params = []): void
-	{
-		$this->templateFile = $templateFile;
-		$this->params = $params;
-	}
-
-
-	/**
-	 * @param  string  $tag
-	 * @param  string[]  $attributes
-	 * @return void
 	 * @throws FileHandlingException
 	 * @throws XmlException
 	 */
-	public function open(string $tag, iterable $attributes = []): void
+	public function open(string $tag, array $attributes = []): void
 	{
 		$this->tag = Html::el($tag)->addAttributes($attributes);
 
@@ -80,42 +62,41 @@ class Writer
 
 
 	/**
-	 * @param  mixed[]  $items
-	 * @param  callable|null  $callback
-	 * @return void
 	 * @throws XmlException
 	 */
-	public function items(iterable $items, callable $callback = null): void
+	public function items(array $items, callable $callback = null): void
 	{
 		foreach ($items as $item) {
-			if ($this->interupt === true) {
+			try {
+				$this->item($item, $callback);
+
+			} catch (XmlInteruptException) {
 				break;
 			}
-
-			if ($callback && !$callback($item)) {
-				continue;
-			}
-
-			$this->write($this->renderItem($item));
 		}
 	}
 
 
 	/**
-	 * @return void
+	 * @throws XmlException
+	 * @throws XmlInteruptException
 	 */
-	public function enableAsyncInterupt(): void
+	public function item(mixed $item, callable $callback = null): void
 	{
-		pcntl_async_signals(true);
-		pcntl_signal(SIGINT, function() {
-			$this->interupt = true;
-		});
+		$callback ??= fn() => true;
+
+		if ($this->interupt) {
+			throw new XmlInteruptException;
+		}
+
+		if (!$callback($item)) {
+			return;
+		}
+
+		$this->write($this->renderNode($item));
 	}
 
 
-	/**
-	 * @return void
-	 */
 	public function close(): void
 	{
 		if ($this->stream === null) {
@@ -130,24 +111,6 @@ class Writer
 
 
 	/**
-	 * @param  mixed  $item
-	 * @return string
-	 */
-	private function renderItem($item): string
-	{
-		return $this->latte->renderToString(
-			$this->templateFile,
-			$this->params + [
-				'item' => $item,
-			]
-		);
-	}
-
-
-	/**
-	 * @param  string  $content
-	 * @param  bool  $newline
-	 * @return void
 	 * @throws XmlException
 	 */
 	private function write(string $content, bool $newline = true): void
@@ -157,9 +120,24 @@ class Writer
 		}
 
 		$content .= $newline ? PHP_EOL : null;
-		
+
 		if (fwrite($this->stream, $content) === false) {
 			throw new XmlException('Unable to write into XML file');
 		}
+	}
+
+
+	private function renderNode(mixed $item): mixed
+	{
+		if (!isset($this->templateFile)) {
+			return $item;
+		}
+
+		return $this->latteEngine->renderToString(
+			$this->templateFile,
+			$this->params + [
+				'item' => $item,
+			]
+		);
 	}
 }

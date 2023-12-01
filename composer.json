@@ -12,10 +12,10 @@
 	},
 
 	"require": {
-		"php": ">=7.3",
+		"php": ">=8.2",
 		"ext-xml": "*",
 		"hakre/xmlreaderiterator": "^0.1",
-		"nette/utils": ">=2.4",
+		"juniwalk/utils": "^2.0",
 		"latte/latte": ">=2.4"
 	}
 }

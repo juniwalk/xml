@@ -9,9 +9,6 @@ namespace JuniWalk\Xml\Exceptions;
 
 final class FileHandlingException extends XmlException
 {
-	/**
-	 * @return self
-	 */
 	public static function fromLastError(): self
 	{
 		$error = error_get_last();

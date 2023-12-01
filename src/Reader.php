@@ -7,26 +7,22 @@
 
 namespace JuniWalk\Xml;
 
+use DOMNode;
+use JuniWalk\Utils\Strings;
 use JuniWalk\Xml\Exceptions\FileHandlingException;
 use JuniWalk\Xml\Exceptions\XmlException;
-use DOMNode;
-use Nette\Utils\Strings;
 use XMLElementIterator;
 use XMLElementXpathFilter;
 use XmlReader;
 
 final class Reader extends XmlReader
 {
-	/** @var string */
-	private $file;
-
-
 	/**
-	 * @param  string  $file
 	 * @throws FileHandlingException
 	 */
-	public function __construct(string $file)
-	{
+	public function __construct(
+		private readonly string $file
+	) {
 		$this->file = $file;
 
 		if (!$this->open($file, null, LIBXML_PARSEHUGE|LIBXML_COMPACT|LIBXML_NOCDATA|LIBXML_BIGLINES)) {
@@ -53,8 +49,7 @@ final class Reader extends XmlReader
 	/**
 	 * @throws XmlException
 	 */
-	#[\ReturnTypeWillChange]
-	public function expand($baseNode = null)
+	public function expand(DOMNode $baseNode = null): DOMNode|false
 	{
 		$result = @parent::expand($baseNode);
 		$this->checkForErrors();
@@ -63,31 +58,19 @@ final class Reader extends XmlReader
 	}
 
 
-	/**
-	 * @param  string|null  $node
-	 * @return iterable
-	 */
 	public function stream(string $node = null): iterable
 	{
 		return new XMLElementIterator($this, $node);
 	}
 
 
-	/**
-	 * @param  string  $xpath
-	 * @return iterable
-	 */
 	public function xpath(string $xpath): iterable
 	{
 		return new XMLElementXpathFilter($this->stream(), $xpath);
 	}
 
 
-	/**
-	 * @param  string  $node
-	 * @return string[]
-	 */
-	public function vanilla(string $node): iterable
+	public function vanilla(string $node): array
 	{
 		foreach ($this->stream($node) as $item) {
 			yield $this->createArray($item->expand());
@@ -95,11 +78,7 @@ final class Reader extends XmlReader
 	}
 
 
-	/**
-	 * @param  string  $node
-	 * @return string[]
-	 */
-	public function vanillaXpath(string $xpath): iterable
+	public function vanillaXpath(string $xpath): array
 	{
 		foreach ($this->xpath($xpath) as $item) {
 			yield $this->createArray($item->expand());
@@ -107,11 +86,7 @@ final class Reader extends XmlReader
 	}
 
 
-	/**
-	 * @param  DOMNode  $node
-	 * @return array|string
-	 */
-	private function createArray(DOMNode $node)
+	private function createArray(DOMNode $node): string|array
 	{
 		$output = [];
 
