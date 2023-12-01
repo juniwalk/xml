@@ -25,7 +25,7 @@ class Writer
 	public function __construct(
 		private string $file,
 		private string $templateFile,
-		private LatteEngine $latteEngine = new LatteEngine;
+		private LatteEngine $latteEngine = new LatteEngine,
 	) { }
 
 
