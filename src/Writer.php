@@ -85,8 +85,11 @@ class Writer
 	 * @throws XmlException
 	 * @throws XmlInteruptException
 	 */
-	public function item(mixed $item, callable $callback = null): void
-	{
+	public function item(
+		mixed $item,
+		callable $callback = null,
+		array $params = [],
+	): void {
 		$callback ??= fn() => true;
 
 		if ($this->interupt) {
@@ -97,7 +100,8 @@ class Writer
 			return;
 		}
 
-		$this->write($this->renderNode($item));
+		$content = $this->renderNode($item, $params);
+		$this->write($content);
 	}
 
 
@@ -131,17 +135,17 @@ class Writer
 	}
 
 
-	private function renderNode(mixed $item): mixed
+	private function renderNode(mixed $item, array $params = []): mixed
 	{
+		$params['item'] = $item;
+
 		if (!isset($this->templateFile)) {
 			return $item;
 		}
 
 		return $this->latteEngine->renderToString(
 			$this->templateFile,
-			$this->params + [
-				'item' => $item,
-			]
+			$this->params + $params,
 		);
 	}
 }
