@@ -16,7 +16,7 @@ use Latte\Engine as LatteEngine;
 class Writer
 {
 	private bool $interupt = false;
-	private LatteEngine $latteEngine;
+	private array $params = [];
 	private Html $tag;
 
 	/** @var resource */
@@ -25,15 +25,19 @@ class Writer
 	public function __construct(
 		private string $file,
 		private string $templateFile,
-		private array $params = [],
-	) {
-		$this->latteEngine = new LatteEngine;
-	}
+		private LatteEngine $latteEngine = new LatteEngine;
+	) { }
 
 
 	public function __destruct()
 	{
 		$this->close();
+	}
+
+
+	public function setParams(array $params): void
+	{
+		$this->params = $params;
 	}
 
 
