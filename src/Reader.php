@@ -70,23 +70,23 @@ final class Reader extends XmlReader
 	}
 
 
-	public function vanilla(string $node): array
+	public function vanilla(string $node): iterable
 	{
 		foreach ($this->stream($node) as $item) {
-			yield $this->createArray($item->expand());
+			yield $this->parseNode($item->expand());
 		}
 	}
 
 
-	public function vanillaXpath(string $xpath): array
+	public function vanillaXpath(string $xpath): iterable
 	{
 		foreach ($this->xpath($xpath) as $item) {
-			yield $this->createArray($item->expand());
+			yield $this->parseNode($item->expand());
 		}
 	}
 
 
-	private function createArray(DOMNode $node): string|array
+	private function parseNode(DOMNode $node): string|array
 	{
 		$output = [];
 
