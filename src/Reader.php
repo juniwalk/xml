@@ -23,8 +23,6 @@ final class Reader extends XmlReader
 	public function __construct(
 		private readonly string $file
 	) {
-		$this->file = $file;
-
 		if (!$this->open($file, null, LIBXML_PARSEHUGE|LIBXML_COMPACT|LIBXML_NOCDATA|LIBXML_BIGLINES)) {
 			throw new FileHandlingException('Unable to read '.$file);
 		}
