@@ -43,6 +43,10 @@ class Writer
 
 	public function enableAsyncInterupt(): void
 	{
+		if (!function_exists('pcntl_signal')) {
+			return;
+		}
+
 		pcntl_signal(SIGINT, fn() => $this->interupt = true);
 		pcntl_async_signals(true);
 	}
