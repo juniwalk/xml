@@ -15,7 +15,7 @@
 		"php": ">=8.2",
 		"ext-xml": "*",
 		"hakre/xmlreaderiterator": "^0.1",
-		"juniwalk/utils": "^2.0",
+		"juniwalk/utils": "^2.0|^3.0",
 		"latte/latte": ">=2.4"
 	}
 }
