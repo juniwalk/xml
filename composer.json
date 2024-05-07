@@ -24,6 +24,7 @@
 		"php": ">=8.2",
 		"ext-xml": "*",
 		"hakre/xmlreaderiterator": "^0.1",
+		"nette/utils": "^3.0|^4.0",
 		"latte/latte": "^2.4|^3.0"
 	},
 

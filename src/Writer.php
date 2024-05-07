@@ -7,10 +7,10 @@
 
 namespace JuniWalk\Xml;
 
-use JuniWalk\Utils\Html;
 use JuniWalk\Xml\Exceptions\FileHandlingException;
 use JuniWalk\Xml\Exceptions\XmlException;
 use JuniWalk\Xml\Exceptions\XmlInteruptException;
+use Nette\Utils\Html;
 use Latte\Engine as LatteEngine;
 
 /**
