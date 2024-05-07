@@ -7,14 +7,14 @@
 
 namespace JuniWalk\Xml\Exceptions;
 
-use libXMLError;
+use LibXMLError ;
 use RuntimeException;
 
 class XmlException extends RuntimeException
 {
-	protected $column;
+	protected int $column;
 
-	public static function fromXmlError(libXMLError $error): self
+	public static function fromXmlError(LibXMLError $error): self
 	{
 		$self = new self($error->message, $error->code);
 		$self->column = $error->column;

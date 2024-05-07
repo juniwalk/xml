@@ -7,9 +7,6 @@
 
 namespace JuniWalk\Xml\Exceptions;
 
-use libXMLError;
-use RuntimeException;
-
 final class XmlInteruptException extends XmlException
 {
 }

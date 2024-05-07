@@ -13,10 +13,15 @@ use JuniWalk\Xml\Exceptions\XmlException;
 use JuniWalk\Xml\Exceptions\XmlInteruptException;
 use Latte\Engine as LatteEngine;
 
+/**
+ * @phpstan-type Params array<string, mixed>
+ * @phpstan-type Handler callable(mixed): bool
+ */
 class Writer
 {
-	private bool $interupt = false;
+	/** @var Params */
 	private array $params = [];
+	private bool $interupt = false;
 	private Html $tag;
 
 	/** @var resource */
@@ -26,7 +31,8 @@ class Writer
 		private string $file,
 		private string $templateFile,
 		private LatteEngine $latteEngine = new LatteEngine,
-	) { }
+	) {
+	}
 
 
 	public function __destruct()
@@ -35,6 +41,9 @@ class Writer
 	}
 
 
+	/**
+	 * @param Params $params
+	 */
 	public function setParams(array $params): void
 	{
 		$this->params = $params;
@@ -53,16 +62,18 @@ class Writer
 
 
 	/**
+	 * @param  array<string, scalar> $attributes
 	 * @throws FileHandlingException
 	 * @throws XmlException
 	 */
 	public function open(string $tag, array $attributes = []): void
 	{
-		$this->tag = Html::el($tag)->addAttributes($attributes);
-
-		if (!$this->stream = @fopen($this->file, 'w+')) {
+		if (!$fp = @fopen($this->file, 'w+')) {
 			throw FileHandlingException::fromLastError();
 		}
+
+		$this->tag = Html::el($tag)->addAttributes($attributes);
+		$this->stream = $fp;
 
 		$this->write('<?xml version="1.0" encoding="utf-8"?>');
 		$this->write($this->tag->startTag());
@@ -70,9 +81,11 @@ class Writer
 
 
 	/**
+	 * @param  mixed[] $items
+	 * @param  Handler $callback
 	 * @throws XmlException
 	 */
-	public function items(array $items, callable $callback = null): void
+	public function items(array $items, ?callable $callback = null): void
 	{
 		foreach ($items as $item) {
 			try {
@@ -86,12 +99,14 @@ class Writer
 
 
 	/**
+	 * @param  Handler $callback
+	 * @param  Params $params
 	 * @throws XmlException
 	 * @throws XmlInteruptException
 	 */
 	public function item(
 		mixed $item,
-		callable $callback = null,
+		?callable $callback = null,
 		array $params = [],
 	): void {
 		$callback ??= fn() => true;
@@ -111,14 +126,14 @@ class Writer
 
 	public function close(): void
 	{
-		if ($this->stream === null) {
+		if (!is_resource($this->stream)) {
 			return;
 		}
 
 		$this->write($this->tag->endTag(), false);
 
 		fclose($this->stream);
-		$this->stream = null;
+		unset($this->stream);
 	}
 
 
@@ -127,7 +142,7 @@ class Writer
 	 */
 	private function write(string $content, bool $newline = true): void
 	{
-		if ($this->stream === null) {
+		if (!is_resource($this->stream)) {
 			throw new XmlException('XML file is not opened');
 		}
 
@@ -139,12 +154,16 @@ class Writer
 	}
 
 
-	private function renderNode(mixed $item, array $params = []): mixed
+	/**
+	 * @param  Params $params
+	 * @throws FileHandlingException
+	 */
+	private function renderNode(mixed $item, array $params = []): string
 	{
 		$params['item'] = $item;
 
 		if (!isset($this->templateFile)) {
-			return $item;
+			throw new FileHandlingException('Missing template file.');
 		}
 
 		return $this->latteEngine->renderToString(

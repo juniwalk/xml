@@ -11,12 +11,14 @@ final class FileHandlingException extends XmlException
 {
 	public static function fromLastError(): self
 	{
-		$error = error_get_last();
+		if (!$error = error_get_last()) {
+			return new self('No last error detected.');
+		}
 
-		$ex = new self($error['message'], $error['type']);
-		$ex->file = $error['file'];
-		$ex->line = $error['line'];
+		$self = new self($error['message'], $error['type']);
+		$self->file = $error['file'];
+		$self->line = $error['line'];
 
-		return $ex;
+		return $self;
 	}
 }
