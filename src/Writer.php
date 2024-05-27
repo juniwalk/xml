@@ -126,7 +126,7 @@ class Writer
 
 	public function close(): void
 	{
-		if (!is_resource($this->stream)) {
+		if (!isset($this->stream) || !is_resource($this->stream)) {
 			return;
 		}
 
