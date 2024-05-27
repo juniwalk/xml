@@ -41,6 +41,12 @@ class Writer
 	}
 
 
+	public function isOpen(): bool
+	{
+		return isset($this->stream) && is_resource($this->stream);	// @phpstan-ignore isset.property
+	}
+
+
 	/**
 	 * @param Params $params
 	 */
@@ -126,7 +132,7 @@ class Writer
 
 	public function close(): void
 	{
-		if (!isset($this->stream) || !is_resource($this->stream)) {
+		if (!$this->isOpen()) {
 			return;
 		}
 
@@ -142,7 +148,7 @@ class Writer
 	 */
 	private function write(string $content, bool $newline = true): void
 	{
-		if (!is_resource($this->stream)) {
+		if (!$this->isOpen()) {
 			throw new XmlException('XML file is not opened');
 		}
 
