@@ -126,6 +126,11 @@ class Writer
 		}
 
 		$content = $this->renderNode($item, $params);
+
+		if (!trim($content)) {
+			return;
+		}
+
 		$this->write($content);
 	}
 
