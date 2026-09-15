@@ -27,11 +27,19 @@ class Writer
 	/** @var resource */
 	private $stream;
 
+	/**
+	 * @throws FileHandlingException
+	 */
 	public function __construct(
 		private string $file,
 		private string $templateFile,
 		private LatteEngine $latteEngine = new LatteEngine,
 	) {
+		if (is_file($templateFile)) {
+			return;
+		}
+
+		throw new FileHandlingException('Missing template file.');
 	}
 
 
@@ -110,12 +118,9 @@ class Writer
 	 * @throws XmlException
 	 * @throws XmlInteruptException
 	 */
-	public function item(
-		mixed $item,
-		?callable $callback = null,
-		array $params = [],
-	): void {
-		$callback ??= fn() => true;
+	public function item(mixed $item, ?callable $callback = null, array $params = []): void
+	{
+		$callback ??= static fn() => true;
 
 		if ($this->interupt) {
 			throw new XmlInteruptException;
@@ -166,16 +171,11 @@ class Writer
 
 
 	/**
-	 * @param  Params $params
-	 * @throws FileHandlingException
+	 * @param Params $params
 	 */
 	private function renderNode(mixed $item, array $params = []): string
 	{
 		$params['item'] = $item;
-
-		if (!isset($this->templateFile)) {
-			throw new FileHandlingException('Missing template file.');
-		}
 
 		return $this->latteEngine->renderToString(
 			$this->templateFile,

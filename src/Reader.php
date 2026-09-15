@@ -8,6 +8,7 @@
 namespace JuniWalk\Xml;
 
 use DOMNode;
+use Generator;
 use JuniWalk\Xml\Exceptions\FileHandlingException;
 use JuniWalk\Xml\Exceptions\XmlException;
 use XMLElementIterator;
@@ -67,9 +68,9 @@ final class Reader extends XmlReader
 
 
 	/**
-	 * @return array<int, string|array<string, string>>
+	 * @return Generator<int, string|array<string, string>>
 	 */
-	public function vanilla(string $nodeName): iterable
+	public function vanilla(string $nodeName): Generator
 	{
 		foreach ($this->stream($nodeName) as $item) {
 			if (!$node = $item?->expand()) {
@@ -82,9 +83,9 @@ final class Reader extends XmlReader
 
 
 	/**
-	 * @return array<int, string|array<string, string>>
+	 * @return Generator<int, string|array<string, string>>
 	 */
-	public function vanillaXpath(string $xpath): iterable
+	public function vanillaXpath(string $xpath): Generator
 	{
 		foreach ($this->xpath($xpath) as $item) {
 			/** @var XmlReader $item */
@@ -127,9 +128,21 @@ final class Reader extends XmlReader
 				}
 
 				if (is_array($output)) {
+					$attributes = $output['@attributes'] ?? [];
+					if (!is_array($attributes)) {
+						$attributes = [];
+					}
+
 					foreach ($node->attributes ?? [] as $key => $value) {
-						/** @var DOMNode $value */
-						$output['@attributes'][$key] = (string) $value->nodeValue;
+						if (!is_string($key) && !is_int($key)) {
+							continue;
+						}
+
+						$attributes[(string) $key] = (string) $value->nodeValue;
+					}
+
+					if ($attributes) {
+						$output['@attributes'] = $attributes;
 					}
 
 					foreach ($output as $key => $value) {
