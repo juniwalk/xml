@@ -58,15 +58,15 @@ final class Reader extends XmlReader
 	}
 
 
-	public function stream(?string $node = null, bool $strictNamespaces = true): ElementIterator
+	public function stream(?string $node = null, bool $stripNamespaces = true, bool $strictNamespaces = true): ElementIterator
 	{
-		return new ElementIterator($this, $node, $strictNamespaces);
+		return new ElementIterator($this, $node, $stripNamespaces, $strictNamespaces);
 	}
 
 
-	public function xpath(string $xpath, bool $strictNamespaces = true): ElementXpathFilter
+	public function xpath(string $xpath, bool $stripNamespaces = true, bool $strictNamespaces = true): ElementXpathFilter
 	{
-		return new ElementXpathFilter($this->stream(null, $strictNamespaces), $xpath);
+		return new ElementXpathFilter($this->stream(null, $stripNamespaces, $strictNamespaces), $xpath);
 	}
 
 

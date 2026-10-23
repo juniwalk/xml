@@ -46,6 +46,7 @@ class ElementIterator implements Iterator
 	public function __construct(
 		private readonly XMLReader $reader,
 		?string $name = null,
+		private readonly bool $stripNamespaces = true,
 		private readonly bool $strictNamespaces = true,
 	) {
 		if ($name === '*' || $name === '') {
@@ -91,8 +92,11 @@ class ElementIterator implements Iterator
 			return null;
 		}
 
-		$xml = $this->stripNamespaces($node);
-		return simplexml_import_dom($xml);
+		if ($this->stripNamespaces) {
+			$node = $this->stripNamespaces($node);
+		}
+
+		return simplexml_import_dom($node);
 	}
 
 
@@ -188,7 +192,7 @@ class ElementIterator implements Iterator
 
 			$this->touchElementStack();
 
-			if ($this->name === null || $this->name === $this->reader->localName || $this->name === $this->reader->name) {
+			if ($this->name === null || $this->name === $this->reader->name || ($this->stripNamespaces && $this->name === $this->reader->localName)) {
 				return;
 			}
 		}
@@ -202,6 +206,11 @@ class ElementIterator implements Iterator
 
 		if ($this->reader->hasAttributes && $this->reader->moveToFirstAttribute()) {
 			do {
+				if (!$this->stripNamespaces) {
+					$attributes[$this->reader->name] = $this->reader->value;
+					continue;
+				}
+
 				if ($this->reader->namespaceURI === self::XMLNS_NAMESPACE) {
 					continue;
 				}
@@ -219,7 +228,7 @@ class ElementIterator implements Iterator
 			$this->reader->moveToElement();
 		}
 
-		$this->elementStack[$depth] = ['name' => $this->reader->localName, 'attributes' => $attributes];
+		$this->elementStack[$depth] = ['name' => $this->stripNamespaces ? $this->reader->localName : $this->reader->name, 'attributes' => $attributes];
 
 		if (count($this->elementStack) !== $depth + 1) {
 			$this->elementStack = array_slice($this->elementStack, 0, $depth + 1, true);

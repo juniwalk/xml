@@ -96,11 +96,36 @@ final class ReaderIterationTest extends TestCase
 
 		$ids = [];
 
-		foreach ((new Reader($file))->stream('item', false) as $item) {
+		foreach ((new Reader($file))->stream('item', true, false) as $item) {
 			$ids[] = (string) $item['id'];
 		}
 
 		Assert::same(['2'], $ids);
+	}
+
+
+	public function testStrippingCanBeDisabled(): void
+	{
+		$file = __DIR__.'/fixtures/items-stream.xml';
+		$ids = [];
+
+		foreach ((new Reader($file))->stream('item', false) as $item) {
+			$ids[] = (string) $item['id'];
+		}
+
+		foreach ((new Reader($file))->xpath('//item[@id="2"]', false) as $item) {
+			$ids[] = (string) $item['id'];
+		}
+
+		Assert::same(['1', '2', '2'], $ids);
+
+		$names = [];
+
+		foreach ((new Reader(__DIR__.'/fixtures/items-namespaced.xml'))->stream('feed:item', false) as $item) {
+			$names[] = $item->getName();
+		}
+
+		Assert::same(['item'], $names);
 	}
 }
 
