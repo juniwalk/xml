@@ -7,6 +7,8 @@
 
 namespace JuniWalk\Xml\Exceptions;
 
+use function error_get_last;
+
 final class FileHandlingException extends XmlException
 {
 	public static function fromLastError(): self

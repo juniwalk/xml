@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:a="http://example.com/a" xmlns:b="http://example.com/b">
+	<item a:id="1" b:id="2"/>
+</root>

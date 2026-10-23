@@ -23,4 +23,10 @@ class XmlException extends RuntimeException
 
 		return $self;
 	}
+
+
+	public static function fromAttributeCollision(string $attribute, string $element): self
+	{
+		return new self('Attribute "'.$attribute.'" of element <'.$element.'> collides after namespace stripping.');
+	}
 }

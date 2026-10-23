@@ -7,10 +7,6 @@
 		"email": "juniwalk@outlook.cz"
 	}],
 
-	"autoload": {
-		"psr-4": {"JuniWalk\\Xml\\": "src/"}
-	},
-
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"config": {
@@ -20,12 +16,19 @@
 		}
 	},
 
+	"autoload": {
+		"psr-4": {"JuniWalk\\Xml\\": "src/"}
+	},
+
 	"require": {
 		"php": ">=8.2",
 		"ext-xml": "*",
-		"hakre/xmlreaderiterator": "^0.1",
 		"nette/utils": "^3.0|^4.0",
 		"latte/latte": "^2.4|^3.0"
+	},
+
+	"autoload-dev": {
+		"psr-4": {"Tests\\": "tests/"}
 	},
 
 	"require-dev": {

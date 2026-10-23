@@ -8,12 +8,15 @@
 namespace JuniWalk\Xml;
 
 use DOMNode;
-use Generator;
 use JuniWalk\Xml\Exceptions\FileHandlingException;
 use JuniWalk\Xml\Exceptions\XmlException;
-use XMLElementIterator;
-use XMLElementXpathFilter;
+use JuniWalk\Xml\Iterators\ElementIterator;
+use JuniWalk\Xml\Iterators\ElementXpathFilter;
 use XmlReader;
+
+use function libxml_clear_errors;
+use function libxml_get_last_error;
+use function libxml_use_internal_errors;
 
 final class Reader extends XmlReader
 {
@@ -55,112 +58,21 @@ final class Reader extends XmlReader
 	}
 
 
-	public function stream(?string $node = null): XMLElementIterator
+	public function stream(?string $node = null, bool $strictNamespaces = true): ElementIterator
 	{
-		return new XMLElementIterator($this, $node);
+		return new ElementIterator($this, $node, $strictNamespaces);
 	}
 
 
-	public function xpath(string $xpath): XMLElementXpathFilter
+	public function xpath(string $xpath, bool $strictNamespaces = true): ElementXpathFilter
 	{
-		return new XMLElementXpathFilter($this->stream(), $xpath);
-	}
-
-
-	/**
-	 * @return Generator<int, string|array<string, string>>
-	 */
-	public function vanilla(string $nodeName): Generator
-	{
-		foreach ($this->stream($nodeName) as $item) {
-			if (!$node = $item?->expand()) {
-				continue;
-			}
-
-			yield $this->parseNode($node);
-		}
+		return new ElementXpathFilter($this->stream(null, $strictNamespaces), $xpath);
 	}
 
 
 	/**
-	 * @return Generator<int, string|array<string, string>>
+	 * @throws XmlException
 	 */
-	public function vanillaXpath(string $xpath): Generator
-	{
-		foreach ($this->xpath($xpath) as $item) {
-			/** @var XmlReader $item */
-			if (!$node = $item->expand()) {
-				continue;
-			}
-
-			yield $this->parseNode($node);
-		}
-	}
-
-
-	/**
-	 * @return string|array<string, string>
-	 */
-	private function parseNode(DOMNode $node): string|array
-	{
-		$output = [];
-
-		switch ($node->nodeType) {
-			case XML_CDATA_SECTION_NODE:
-			case XML_TEXT_NODE:
-				$output = trim($node->textContent);
-				break;
-
-			case XML_ELEMENT_NODE:
-				foreach ($node->childNodes as $child) {
-					$value = $this->parseNode($child);
-
-					if (isset($child->tagName) && $key = mb_strtolower($child->tagName)) {
-						$output[$key][] = $value;
-
-					} elseif ($value || $value === '0') {
-						$output = (string) $value;	// @phpstan-ignore-line
-					}
-				}
-
-				if ($node->attributes?->length && !is_array($output)) {
-					$output = ['@content' => $output];
-				}
-
-				if (is_array($output)) {
-					$attributes = $output['@attributes'] ?? [];
-					if (!is_array($attributes)) {
-						$attributes = [];
-					}
-
-					foreach ($node->attributes ?? [] as $key => $value) {
-						if (!is_string($key) && !is_int($key)) {
-							continue;
-						}
-
-						$attributes[(string) $key] = (string) $value->nodeValue;
-					}
-
-					if ($attributes) {
-						$output['@attributes'] = $attributes;
-					}
-
-					foreach ($output as $key => $value) {
-						if (!is_array($value) || sizeof($value) > 1 || !isset($value[0])) {
-							continue;
-						}
-
-						$output[$key] = $value[0];
-					}
-				}
-
-				break;
-		}
-
-		return $output;
-	}
-
-
 	private function checkForErrors(): void
 	{
 		if ($lastError = libxml_get_last_error()) {

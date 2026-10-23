@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed:root xmlns:feed="http://example.com/feed" xmlns:x="http://example.com/x" xmlns="http://example.com/default">
+	<feed:item x:id="1"><x:title>First</x:title></feed:item>
+	<item id="2" xmlns:y="http://example.com/y"><title>Second</title></item>
+</feed:root>

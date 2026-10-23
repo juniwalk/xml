@@ -13,6 +13,15 @@ use JuniWalk\Xml\Exceptions\XmlInteruptException;
 use Nette\Utils\Html;
 use Latte\Engine as LatteEngine;
 
+use function fclose;
+use function fopen;
+use function function_exists;
+use function fwrite;
+use function is_file;
+use function pcntl_async_signals;
+use function pcntl_signal;
+use function trim;
+
 /**
  * @phpstan-type Params array<string, mixed>
  * @phpstan-type Handler callable(mixed): bool
